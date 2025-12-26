@@ -1,7 +1,7 @@
 {
   "name": "synapseha",
   "version": "1.0.0",
-  "description": "MCP server for Home Assistant providing 20 tools for LLM-driven control and maintenance",
+  "description": "MCP server for Home Assistant providing 21 tools for LLM-driven control and maintenance",
   "main": "dist/index.js",
   "bin": {
     "synapseha": "dist/index.js"

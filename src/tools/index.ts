@@ -296,7 +296,20 @@ export function registerTools(
           );
         }
 
-        await haClient.callService('media_player', `media_${args.action}`, 
+        // Map actions to correct Home Assistant service names
+        const serviceMap: Record<string, string> = {
+          'play': 'media_play',
+          'pause': 'media_pause',
+          'stop': 'media_stop',
+          'next_track': 'media_next_track',
+          'previous_track': 'media_previous_track',
+          'volume_up': 'volume_up',
+          'volume_down': 'volume_down',
+          'volume_mute': 'volume_mute',
+        };
+
+        const serviceName = serviceMap[args.action] || args.action;
+        await haClient.callService('media_player', serviceName, 
           undefined, 
           { entity_id: entityId }
         );
