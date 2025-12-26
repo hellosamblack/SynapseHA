@@ -19,7 +19,6 @@ RUN npm ci --only=production --ignore-scripts 2>/dev/null || npm install --only=
 
 # Copy application files
 COPY server.js ./
-COPY www/ ./www/
 
 # Copy entrypoint script
 COPY run.sh /run.sh
@@ -28,9 +27,10 @@ RUN chmod a+x /run.sh
 # Create data directory for cache persistence
 RUN mkdir -p /data
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${HTTP_PORT:-3000}/health || exit 1
+# Note: This server uses STDIO transport and does not provide HTTP endpoints
+# Health check disabled as server uses STDIO protocol
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#     CMD curl -f http://localhost:${HTTP_PORT:-3000}/health || exit 1
 
 # Labels
 LABEL \
