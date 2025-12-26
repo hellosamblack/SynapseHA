@@ -176,6 +176,20 @@ export function registerTools(
           throw new Error('Either entity_id or name must be provided');
         }
 
+        // Validate parameter types
+        if (args.entity_id !== undefined && typeof args.entity_id !== 'string') {
+          throw new Error('Invalid parameter: entity_id must be a string when provided.');
+        }
+        if (args.name !== undefined && typeof args.name !== 'string') {
+          throw new Error('Invalid parameter: name must be a string when provided.');
+        }
+        if (args.area !== undefined && typeof args.area !== 'string') {
+          throw new Error('Invalid parameter: area must be a string when provided.');
+        }
+        if (args.floor !== undefined && typeof args.floor !== 'string') {
+          throw new Error('Invalid parameter: floor must be a string when provided.');
+        }
+
         const searchParams = {
           entity_id: args.entity_id,
           name: args.name,
