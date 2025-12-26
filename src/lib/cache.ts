@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import type { CachedData } from '../types';
+import { logger } from './logger.js';
 
 export class CacheManager {
   private cacheDir: string;
@@ -21,7 +22,7 @@ export class CacheManager {
     try {
       await fs.mkdir(this.cacheDir, { recursive: true });
     } catch (error) {
-      console.error('Failed to create cache directory:', error);
+      logger.error('Failed to create cache directory:', error);
     }
   }
 
@@ -68,7 +69,7 @@ export class CacheManager {
       const cachePath = this.getCachePath(key);
       await fs.writeFile(cachePath, JSON.stringify(cached), 'utf-8');
     } catch (error) {
-      console.error('Failed to write cache to disk:', error);
+      logger.error('Failed to write cache to disk:', error);
       // Invalidate memory cache entry to maintain consistency between memory and disk
       this.memoryCache.delete(key);
       throw error; // Re-throw to notify caller of cache failure
@@ -110,7 +111,7 @@ export class CacheManager {
         const data = await fetchFn();
         await this.set(key, data, this.cacheTTL);
       } catch (error) {
-        console.error(`Auto-refresh failed for key ${key}:`, error);
+        logger.error(`Auto-refresh failed for key ${key}:`, error);
       }
     }, interval);
 
@@ -144,7 +145,7 @@ export class CacheManager {
         files.map(file => fs.unlink(path.join(this.cacheDir, file)))
       );
     } catch (error) {
-      console.error('Failed to clear cache directory:', error);
+      logger.error('Failed to clear cache directory:', error);
     }
   }
 

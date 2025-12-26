@@ -12,6 +12,7 @@ import { HomeAssistantClient } from './lib/ha-client.js';
 import { CacheManager } from './lib/cache.js';
 import { FuzzySearcher } from './lib/fuzzy-search.js';
 import { NameResolver } from './lib/name-resolver.js';
+import { logger } from './lib/logger.js';
 import { registerTools } from './tools/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,12 +24,12 @@ const CACHE_DIR = process.env.CACHE_DIR || './cache';
 const CACHE_TTL = parseInt(process.env.CACHE_TTL || '60000', 10);
 
 if (!HA_TOKEN) {
-  console.error('Error: HA_TOKEN (or HASS_TOKEN or API_ACCESS_TOKEN) environment variable is required');
+  logger.error('Error: HA_TOKEN (or HASS_TOKEN or API_ACCESS_TOKEN) environment variable is required');
   process.exit(1);
 }
 
 async function main() {
-  console.error('Starting SynapseHA MCP Server...');
+  logger.info('Starting SynapseHA MCP Server...');
 
   // Initialize components
   const haClient = new HomeAssistantClient(HA_URL, HA_TOKEN);
@@ -39,7 +40,7 @@ async function main() {
   await cacheManager.init();
 
   // Initialize cache with entity states and auto-refresh
-  console.error('Initializing cache and auto-refresh...');
+  logger.info('Initializing cache and auto-refresh...');
   try {
     const entities = await haClient.getStates();
     await cacheManager.set('entities', entities);
@@ -65,9 +66,9 @@ async function main() {
     fuzzySearcher.setAreas(areas);
     nameResolver.setAreas(areas);
 
-    console.error('Cache initialized successfully');
+    logger.info('Cache initialized successfully');
   } catch (error) {
-    console.error('Warning: Failed to initialize cache:', error);
+    logger.error('Warning: Failed to initialize cache:', error);
     // Fail fast if we cannot initialize the cache to avoid running in a degraded state
     process.exit(1);
   }
@@ -127,17 +128,17 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.error('SynapseHA MCP Server running');
+  logger.info('SynapseHA MCP Server running');
 
   // Cleanup on exit
   process.on('SIGINT', () => {
-    console.error('Shutting down...');
+    logger.info('Shutting down...');
     cacheManager.shutdown();
     process.exit(0);
   });
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  logger.error('Fatal error:', error);
   process.exit(1);
 });
