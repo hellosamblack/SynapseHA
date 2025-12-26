@@ -12,22 +12,20 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Clone the repository at build time to get the latest source
-ARG BUILD_VERSION=1.0.0
-RUN git clone --depth 1 --branch main https://github.com/hellosamblack/SynapseHA.git /tmp/synapseha && \
-    cp /tmp/synapseha/package.json /tmp/synapseha/package-lock.json /app/ && \
-    cp /tmp/synapseha/tsconfig.json /app/ && \
-    cp -r /tmp/synapseha/src /app/src && \
+# Clone the repository at build time - use BUILD_VERSION for specific tag/branch
+ARG BUILD_VERSION=main
+RUN git clone https://github.com/hellosamblack/SynapseHA.git /tmp/synapseha && \
+    cd /tmp/synapseha && \
+    git checkout "${BUILD_VERSION}" && \
+    cp package.json package-lock.json /app/ && \
+    cp tsconfig.json /app/ && \
+    cp -r src /app/ && \
     rm -rf /tmp/synapseha
 
-# Install production dependencies
-RUN npm ci --only=production 2>/dev/null || npm install --only=production
-
-# Install dev dependencies for build, compile TypeScript, then remove dev deps
-RUN npm install --only=development && \
+# Install dependencies, build, then prune dev dependencies to keep only production deps
+RUN npm ci 2>/dev/null || npm install && \
     npm run build && \
-    rm -rf node_modules && \
-    npm ci --only=production 2>/dev/null || npm install --only=production
+    npm prune --production
 
 # Copy entrypoint script
 COPY run.sh /run.sh
@@ -36,9 +34,12 @@ RUN chmod a+x /run.sh
 # Create data directory for cache persistence
 RUN mkdir -p /data
 
+# Default HTTP port for the application
+ENV HTTP_PORT=3000
+
 # Health check - using the HTTP server's health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${HTTP_PORT:-3000}/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Labels
 LABEL \

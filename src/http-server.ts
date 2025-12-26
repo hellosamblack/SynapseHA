@@ -3,7 +3,7 @@
  * HTTP/SSE server for SynapseHA - designed for Home Assistant add-on deployment.
  * This provides an HTTP endpoint for MCP clients to connect to.
  */
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import dotenv from 'dotenv';
@@ -24,14 +24,21 @@ const HA_TOKEN = process.env.HA_TOKEN || process.env.HASS_TOKEN || process.env.S
 const CACHE_DIR = process.env.CACHE_DIR || './cache';
 const CACHE_TTL = parseInt(process.env.CACHE_TTL || '60000', 10);
 const HTTP_PORT = parseInt(process.env.HTTP_PORT || '3000', 10);
+const BEARER_TOKEN = process.env.BEARER_TOKEN || '';
+const REQUIRE_AUTH = process.env.REQUIRE_AUTH === 'true';
+const CACHE_REFRESH_INTERVAL = parseInt(process.env.CACHE_REFRESH_INTERVAL || '60', 10) * 1000;
 
 if (!HA_TOKEN) {
   logger.error('Error: HA_TOKEN (or HASS_TOKEN or SUPERVISOR_TOKEN) environment variable is required');
   process.exit(1);
 }
 
-// Store active transports by session ID
-const transports: Record<string, SSEServerTransport> = {};
+// Store active transports by session ID with timestamps for cleanup
+const transports: Record<string, { transport: SSEServerTransport; lastActivity: number }> = {};
+
+// Cleanup interval for stale transports (5 minutes)
+const TRANSPORT_TIMEOUT_MS = 5 * 60 * 1000;
+const CLEANUP_INTERVAL_MS = 60 * 1000;
 
 // Shared components
 let haClient: HomeAssistantClient;
@@ -70,6 +77,67 @@ function createServer(): McpServer {
   return server;
 }
 
+// Authentication middleware
+function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  // Skip auth if not required
+  if (!REQUIRE_AUTH) {
+    next();
+    return;
+  }
+
+  // Validate that a bearer token is configured when auth is required
+  if (!BEARER_TOKEN) {
+    logger.error('Authentication is required but no bearer token is configured');
+    res.status(500).json({ error: 'Server misconfiguration: authentication required but no token configured' });
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authorization header with Bearer token required' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  if (token !== BEARER_TOKEN) {
+    res.status(403).json({ error: 'Invalid bearer token' });
+    return;
+  }
+
+  next();
+}
+
+// Cleanup stale transports to prevent memory leaks
+function cleanupStaleTransports(): void {
+  const now = Date.now();
+  for (const sessionId in transports) {
+    const entry = transports[sessionId];
+    if (now - entry.lastActivity > TRANSPORT_TIMEOUT_MS) {
+      logger.info(`Cleaning up stale transport for session ${sessionId}`);
+      try {
+        entry.transport.close();
+      } catch (error) {
+        logger.error(`Error closing stale transport for session ${sessionId}:`, error);
+      }
+      delete transports[sessionId];
+    }
+  }
+}
+
+async function gracefulShutdown(): Promise<void> {
+  logger.info('Shutting down...');
+  for (const sessionId in transports) {
+    try {
+      await transports[sessionId].transport.close();
+      delete transports[sessionId];
+    } catch (error) {
+      logger.error(`Error closing transport for session ${sessionId}:`, error);
+    }
+  }
+  cacheManager.shutdown();
+  process.exit(0);
+}
+
 async function main() {
   logger.info('Starting SynapseHA HTTP/SSE Server...');
 
@@ -89,13 +157,13 @@ async function main() {
     fuzzySearcher.setEntities(entities);
     nameResolver.setEntities(entities);
 
-    // Auto-refresh entities every 60 seconds
+    // Auto-refresh entities using configured interval
     cacheManager.registerAutoRefresh('entities', async () => {
       const newEntities = await haClient.getStates();
       fuzzySearcher.setEntities(newEntities);
       nameResolver.setEntities(newEntities);
       return newEntities;
-    }, 60000);
+    }, CACHE_REFRESH_INTERVAL);
 
     // Load devices and areas
     const devices = await haClient.getDevices();
@@ -110,7 +178,7 @@ async function main() {
 
     logger.info('Cache initialized successfully');
   } catch (error) {
-    logger.error('Warning: Failed to initialize cache:', error);
+    logger.error('Error: Failed to initialize cache:', error);
     process.exit(1);
   }
 
@@ -118,7 +186,7 @@ async function main() {
   const app = express();
   app.use(express.json());
 
-  // Health check endpoint
+  // Health check endpoint (no auth required)
   app.get('/health', (_req, res) => {
     res.json({ 
       status: 'ok', 
@@ -128,13 +196,13 @@ async function main() {
     });
   });
 
-  // SSE endpoint for establishing the stream
-  app.get('/mcp', async (req, res) => {
+  // SSE endpoint for establishing the stream (auth required if configured)
+  app.get('/mcp', authMiddleware, async (req, res) => {
     logger.info('Received GET request to /mcp (establishing SSE stream)');
     try {
       const transport = new SSEServerTransport('/messages', res);
       const sessionId = transport.sessionId;
-      transports[sessionId] = transport;
+      transports[sessionId] = { transport, lastActivity: Date.now() };
 
       transport.onclose = () => {
         logger.info(`SSE transport closed for session ${sessionId}`);
@@ -152,8 +220,8 @@ async function main() {
     }
   });
 
-  // Messages endpoint for receiving client JSON-RPC requests
-  app.post('/messages', async (req, res) => {
+  // Messages endpoint for receiving client JSON-RPC requests (auth required if configured)
+  app.post('/messages', authMiddleware, async (req, res) => {
     const sessionId = req.query.sessionId as string;
     if (!sessionId) {
       logger.error('No session ID provided in request URL');
@@ -161,15 +229,18 @@ async function main() {
       return;
     }
 
-    const transport = transports[sessionId];
-    if (!transport) {
+    const entry = transports[sessionId];
+    if (!entry) {
       logger.error(`No active transport found for session ID: ${sessionId}`);
       res.status(404).send('Session not found');
       return;
     }
 
+    // Update last activity timestamp
+    entry.lastActivity = Date.now();
+
     try {
-      await transport.handlePostMessage(req, res, req.body);
+      await entry.transport.handlePostMessage(req, res, req.body);
     } catch (error) {
       logger.error('Error handling request:', error);
       if (!res.headersSent) {
@@ -178,27 +249,22 @@ async function main() {
     }
   });
 
+  // Start periodic cleanup of stale transports
+  setInterval(cleanupStaleTransports, CLEANUP_INTERVAL_MS);
+
   // Start the server
   app.listen(HTTP_PORT, () => {
     logger.info(`SynapseHA HTTP/SSE Server listening on port ${HTTP_PORT}`);
     logger.info(`  Health check: http://localhost:${HTTP_PORT}/health`);
     logger.info(`  MCP endpoint: http://localhost:${HTTP_PORT}/mcp`);
+    if (REQUIRE_AUTH) {
+      logger.info(`  Authentication: Required (Bearer token)`);
+    }
   });
 
-  // Cleanup on exit
-  process.on('SIGINT', async () => {
-    logger.info('Shutting down...');
-    for (const sessionId in transports) {
-      try {
-        await transports[sessionId].close();
-        delete transports[sessionId];
-      } catch (error) {
-        logger.error(`Error closing transport for session ${sessionId}:`, error);
-      }
-    }
-    cacheManager.shutdown();
-    process.exit(0);
-  });
+  // Cleanup on exit - handle both SIGINT and SIGTERM
+  process.on('SIGINT', gracefulShutdown);
+  process.on('SIGTERM', gracefulShutdown);
 }
 
 main().catch((error) => {
