@@ -172,6 +172,10 @@ export function registerTools(
         },
       },
       handler: async (args) => {
+        if (!args.entity_id && !args.name) {
+          throw new Error('Either entity_id or name must be provided');
+        }
+
         const entityId = resolver.resolveEntityId({
           entity_id: args.entity_id,
           name: args.name,
@@ -181,7 +185,7 @@ export function registerTools(
         });
 
         if (!entityId) {
-          throw new Error('Could not resolve light entity. Try using entity_id or check name/area spelling.');
+          throw new Error('Could not resolve light entity. Provide a valid entity_id or check name/area spelling.');
         }
 
         const serviceData: any = {};
@@ -241,6 +245,10 @@ export function registerTools(
         },
       },
       handler: async (args) => {
+        if (!args.entity_id && !args.name) {
+          throw new Error('Either entity_id or name must be provided');
+        }
+
         const entityId = resolver.resolveEntityId({
           entity_id: args.entity_id,
           name: args.name,
@@ -250,7 +258,7 @@ export function registerTools(
         });
 
         if (!entityId) {
-          throw new Error('Could not resolve climate entity. Try using entity_id or check name/area spelling.');
+          throw new Error('Could not resolve climate entity. Provide a valid entity_id or check name/area spelling.');
         }
 
         const actions = [];

@@ -66,12 +66,12 @@ export class NameResolver {
       return args.entity_id;
     }
 
-    if (!args.name && !args.area) {
+    if (!args.name) {
       return null;
     }
 
-    const searchName = args.name || args.area;
-    const normalized = this.normalizeName(searchName || '');
+    const searchName = args.name;
+    const normalized = this.normalizeName(searchName);
     let candidates = this.nameIndex.get(normalized) || [];
 
     // Try partial matches if no exact match

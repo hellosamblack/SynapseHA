@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-26
+
+### Added
+- Intelligent entity name resolution with `NameResolver` class
+  - Support for `name`, `area`, and `floor` parameters for disambiguation
+  - Name normalization (handles variations like "living room" vs "livingroom")
+  - Partial matching (finds "temp" when searching for "temperature")
+  - Domain-aware matching (prefers correct domain when ambiguous)
+- dotenv support for flexible configuration
+  - Multiple environment variable aliases (`HA_URL`/`HASS_URL`, `HA_TOKEN`/`HASS_TOKEN`/`API_ACCESS_TOKEN`)
+- ES2020 module support (`type: "module"` in package.json)
+
+### Changed
+- Updated control tools (lights, climate) to support name/area/floor resolution
+- Migrated from CommonJS to ES modules
+- Enhanced entity resolution to match reference implementation patterns
+
+### Removed
+- @toon-format/toon dependency (not widely supported, unnecessary for MCP protocol)
+
 ## [1.0.0] - 2025-12-26
 
 ### Added
