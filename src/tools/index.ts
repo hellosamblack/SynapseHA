@@ -2,6 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { HomeAssistantClient } from '../lib/ha-client.js';
 import { CacheManager } from '../lib/cache.js';
 import { FuzzySearcher } from '../lib/fuzzy-search.js';
+import { NameResolver } from '../lib/name-resolver.js';
 import type { Entity } from '../types/index.js';
 
 interface ToolHandler {
@@ -12,7 +13,8 @@ interface ToolHandler {
 export function registerTools(
   haClient: HomeAssistantClient,
   cache: CacheManager,
-  search: FuzzySearcher
+  search: FuzzySearcher,
+  resolver: NameResolver
 ): ToolHandler[] {
   return [
     // ===== ENTITY DISCOVERY TOOLS =====
@@ -127,13 +129,25 @@ export function registerTools(
     {
       definition: {
         name: 'control_light',
-        description: 'Control lights: turn on/off, set brightness (0-255), color, temperature.',
+        description: 'Control lights: turn on/off, set brightness (0-255), color, temperature. Use name and area for flexible entity resolution.',
         inputSchema: {
           type: 'object',
           properties: {
             entity_id: {
               type: 'string',
-              description: 'Light entity ID or name',
+              description: 'Light entity ID (e.g., light.living_room)',
+            },
+            name: {
+              type: 'string',
+              description: 'Friendly name of the light (alternative to entity_id)',
+            },
+            area: {
+              type: 'string',
+              description: 'Area/room name for entity resolution',
+            },
+            floor: {
+              type: 'string',
+              description: 'Floor name for disambiguation',
             },
             action: {
               type: 'string',
@@ -154,14 +168,20 @@ export function registerTools(
               description: 'Color temperature in mireds',
             },
           },
-          required: ['entity_id', 'action'],
+          required: ['action'],
         },
       },
       handler: async (args) => {
-        let entityId = args.entity_id;
-        if (!entityId.includes('.')) {
-          const found = search.findEntityByName(entityId);
-          if (found) entityId = found.entity_id;
+        const entityId = resolver.resolveEntityId({
+          entity_id: args.entity_id,
+          name: args.name,
+          area: args.area,
+          floor: args.floor,
+          domain: 'light',
+        });
+
+        if (!entityId) {
+          throw new Error('Could not resolve light entity. Try using entity_id or check name/area spelling.');
         }
 
         const serviceData: any = {};
@@ -184,13 +204,25 @@ export function registerTools(
     {
       definition: {
         name: 'control_climate',
-        description: 'Control climate devices: set temperature, mode (heat/cool/auto), fan mode.',
+        description: 'Control climate devices: set temperature, mode (heat/cool/auto), fan mode. Use name and area for flexible entity resolution.',
         inputSchema: {
           type: 'object',
           properties: {
             entity_id: {
               type: 'string',
-              description: 'Climate entity ID or name',
+              description: 'Climate entity ID',
+            },
+            name: {
+              type: 'string',
+              description: 'Friendly name of the climate device',
+            },
+            area: {
+              type: 'string',
+              description: 'Area/room name for entity resolution',
+            },
+            floor: {
+              type: 'string',
+              description: 'Floor name for disambiguation',
             },
             temperature: {
               type: 'number',
@@ -206,14 +238,19 @@ export function registerTools(
               description: 'Fan mode (auto, low, medium, high)',
             },
           },
-          required: ['entity_id'],
         },
       },
       handler: async (args) => {
-        let entityId = args.entity_id;
-        if (!entityId.includes('.')) {
-          const found = search.findEntityByName(entityId);
-          if (found) entityId = found.entity_id;
+        const entityId = resolver.resolveEntityId({
+          entity_id: args.entity_id,
+          name: args.name,
+          area: args.area,
+          floor: args.floor,
+          domain: 'climate',
+        });
+
+        if (!entityId) {
+          throw new Error('Could not resolve climate entity. Try using entity_id or check name/area spelling.');
         }
 
         const actions = [];
@@ -227,7 +264,7 @@ export function registerTools(
         }
         
         if (args.hvac_mode) {
-          await haClient.callService('climate', 'set_hvac_mode', 
+          await haClient.callService('climate', 'set_hvac_mode',
             { hvac_mode: args.hvac_mode }, 
             { entity_id: entityId }
           );

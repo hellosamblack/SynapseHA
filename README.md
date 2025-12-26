@@ -175,6 +175,28 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 See [API.md](API.md) for detailed documentation of each tool.
 
+## 🎯 Entity Resolution
+
+SynapseHA features intelligent entity resolution that allows flexible device control:
+
+```javascript
+// Use friendly names instead of entity IDs
+{name: "living room lights"}  // → light.living_room_main
+
+// Combine with area for disambiguation  
+{name: "temperature", area: "bedroom"}  // → sensor.bedroom_temperature
+
+// Add floor for multi-level homes
+{name: "lights", area: "bedroom", floor: "2"}  // → light.2f_bedroom_main
+
+// Direct entity_id still works
+{entity_id: "light.living_room"}
+```
+
+**Name normalization**: Handles variations like "living room" vs "livingroom", ignores special characters  
+**Partial matching**: Finds "temp" when searching for "temperature"  
+**Domain preference**: Prefers lights when multiple entity types match
+
 ## 💡 Example Usage
 
 ### Ask Claude to:
@@ -196,12 +218,13 @@ SynapseHA/
 │   ├── lib/
 │   │   ├── ha-client.ts      # Home Assistant API wrapper
 │   │   ├── cache.ts          # Persistent cache with auto-refresh
-│   │   └── fuzzy-search.ts   # Fuzzy matching for entities
+│   │   ├── fuzzy-search.ts   # Fuzzy matching for entities
+│   │   └── name-resolver.ts  # Intelligent entity name resolution
 │   ├── tools/
 │   │   └── index.ts          # All 21 MCP tools
 │   └── types/
 │       └── index.ts          # TypeScript type definitions
-├── dist/                     # Compiled JavaScript
+├── dist/                     # Compiled JavaScript (ES modules)
 └── cache/                    # Persistent disk cache
 ```
 

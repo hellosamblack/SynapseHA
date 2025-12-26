@@ -6,18 +6,25 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { HomeAssistantClient } from './lib/ha-client.js';
 import { CacheManager } from './lib/cache.js';
 import { FuzzySearcher } from './lib/fuzzy-search.js';
+import { NameResolver } from './lib/name-resolver.js';
 import { registerTools } from './tools/index.js';
 
-const HA_URL = process.env.HA_URL || 'http://homeassistant.local:8123';
-const HA_TOKEN = process.env.HA_TOKEN || '';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+const HA_URL = process.env.HA_URL || process.env.HASS_URL || 'http://homeassistant.local:8123';
+const HA_TOKEN = process.env.HA_TOKEN || process.env.HASS_TOKEN || process.env.API_ACCESS_TOKEN || '';
 const CACHE_DIR = process.env.CACHE_DIR || './cache';
 const CACHE_TTL = parseInt(process.env.CACHE_TTL || '60000', 10);
 
 if (!HA_TOKEN) {
-  console.error('Error: HA_TOKEN environment variable is required');
+  console.error('Error: HA_TOKEN (or HASS_TOKEN or API_ACCESS_TOKEN) environment variable is required');
   process.exit(1);
 }
 
@@ -28,6 +35,7 @@ async function main() {
   const haClient = new HomeAssistantClient(HA_URL, HA_TOKEN);
   const cacheManager = new CacheManager(CACHE_DIR, CACHE_TTL);
   const fuzzySearcher = new FuzzySearcher();
+  const nameResolver = new NameResolver();
 
   await cacheManager.init();
 
@@ -37,11 +45,13 @@ async function main() {
     const entities = await haClient.getStates();
     await cacheManager.set('entities', entities);
     fuzzySearcher.setEntities(entities);
+    nameResolver.setEntities(entities);
 
     // Auto-refresh entities every 60 seconds
     cacheManager.registerAutoRefresh('entities', async () => {
       const newEntities = await haClient.getStates();
       fuzzySearcher.setEntities(newEntities);
+      nameResolver.setEntities(newEntities);
       return newEntities;
     }, 60000);
 
@@ -49,10 +59,12 @@ async function main() {
     const devices = await haClient.getDevices();
     await cacheManager.set('devices', devices);
     fuzzySearcher.setDevices(devices);
+    nameResolver.setDevices(devices);
 
     const areas = await haClient.getAreas();
     await cacheManager.set('areas', areas);
     fuzzySearcher.setAreas(areas);
+    nameResolver.setAreas(areas);
 
     console.error('Cache initialized successfully');
   } catch (error) {
@@ -73,7 +85,7 @@ async function main() {
   );
 
   // Register all tools
-  const tools = registerTools(haClient, cacheManager, fuzzySearcher);
+  const tools = registerTools(haClient, cacheManager, fuzzySearcher, nameResolver);
 
   // Handle list tools request
   server.setRequestHandler(ListToolsRequestSchema, async () => ({

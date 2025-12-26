@@ -1,6 +1,7 @@
 {
   "name": "synapseha",
   "version": "1.0.0",
+  "type": "module",
   "description": "MCP server for Home Assistant providing 21 tools for LLM-driven control and maintenance",
   "main": "dist/index.js",
   "bin": {
@@ -13,12 +14,18 @@
     "dev": "npm run build && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["mcp", "home-assistant", "automation", "smart-home"],
+  "keywords": [
+    "mcp",
+    "home-assistant",
+    "automation",
+    "smart-home"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.1",
     "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
     "fuse.js": "^7.1.0"
   },
   "devDependencies": {
