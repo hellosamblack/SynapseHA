@@ -1,0 +1,19 @@
+# Build configuration for SynapseHA
+build_from:
+  aarch64: node:20-alpine
+  amd64: node:20-alpine
+  armv7: node:20-alpine
+
+labels:
+  org.opencontainers.image.title: SynapseHA
+  org.opencontainers.image.description: MCP server for Home Assistant providing 21 tools for LLM-driven control and maintenance
+  org.opencontainers.image.source: https://github.com/hellosamblack/SynapseHA
+  org.opencontainers.image.authors: Sam Black <hellosamblack@gmail.com>
+  org.opencontainers.image.licenses: ISC
+  io.hass.type: addon
+  io.hass.name: SynapseHA
+  io.hass.version: 1.0.0
+
+args:
+  BUILD_ARCH: ${BUILD_ARCH}
+  BUILD_FROM: ${BUILD_FROM}

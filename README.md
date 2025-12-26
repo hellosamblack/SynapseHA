@@ -14,7 +14,55 @@ MCP server for Home Assistant providing 21 tools for LLM-driven control and main
 - **📊 Analytics**: Live context, historical baselines, and anomaly detection
 - **⚡ Performance**: Persistent disk cache with 60s auto-refresh for <50ms responses
 
-## 🚀 Quick Start
+## 🏠 Home Assistant Add-on Installation
+
+SynapseHA can be installed as a Home Assistant add-on for easy integration. The add-on runs an HTTP/SSE server that MCP clients can connect to.
+
+### Quick Install
+
+1. **Add this repository to Home Assistant**
+   
+   [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fhellosamblack%2FSynapseHA)
+   
+   Or manually:
+   - Go to **Settings** → **Add-ons** → **Add-on Store**
+   - Click the three dots menu (⋮) in the top right
+   - Select **Repositories**
+   - Add: `https://github.com/hellosamblack/SynapseHA`
+   - Click **Add** → **Close**
+
+2. **Install the add-on**
+   - Find **SynapseHA** in the add-on store
+   - Click **Install**
+
+3. **Start the add-on**
+   - Click **Start**
+   - The add-on will automatically connect to your Home Assistant instance using the Supervisor API
+   - The MCP server will be available at `http://<homeassistant-ip>:3000`
+
+### Connecting MCP Clients
+
+Once the add-on is running, MCP clients can connect to:
+- **SSE endpoint**: `GET http://<homeassistant-ip>:3000/mcp`
+- **Messages endpoint**: `POST http://<homeassistant-ip>:3000/messages?sessionId=<id>`
+- **Health check**: `GET http://<homeassistant-ip>:3000/health`
+
+### Add-on Configuration
+
+The add-on supports the following configuration options:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `log_level` | `info` | Logging level (debug, info, warn, error) |
+| `http_port` | `3000` | HTTP port for MCP server |
+| `bearer_token` | `""` | Optional bearer token for authentication |
+| `require_auth` | `false` | Require authentication for connections |
+| `cache_refresh_interval` | `60` | Cache refresh interval in seconds |
+| `entity_cache_enabled` | `true` | Enable entity caching |
+
+## 🚀 Manual Installation (Claude Desktop)
+
+For use with Claude Desktop without Home Assistant add-on:
 
 1. **Install dependencies**
    ```bash
@@ -53,7 +101,7 @@ MCP server for Home Assistant providing 21 tools for LLM-driven control and main
 
 5. **Restart Claude Desktop** and start chatting!
 
-## 📋 Installation
+## 📋 Development Installation
 
 ```bash
 git clone https://github.com/hellosamblack/SynapseHA.git
