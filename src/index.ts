@@ -68,6 +68,8 @@ async function main() {
     console.error('Cache initialized successfully');
   } catch (error) {
     console.error('Warning: Failed to initialize cache:', error);
+    // Fail fast if we cannot initialize the cache to avoid running in a degraded state
+    process.exit(1);
   }
 
   // Create MCP server
