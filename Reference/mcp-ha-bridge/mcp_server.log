@@ -1,0 +1,8 @@
+Loaded entity index cache from disk (f:\CastleBlackCode\home-assistant-config\.vscode\mcp-ha-bridge\entity_index_cache.json)
+Home Assistant MCP server running on stdio
+Building entity index...
+Fetched 1770 entities
+Entity index built: 1770 entities, 3448 name mappings
+Saved entity index cache to disk (f:\CastleBlackCode\home-assistant-config\.vscode\mcp-ha-bridge\entity_index_cache.json)
+Saved TOON LLM summary to disk (f:\CastleBlackCode\home-assistant-config\.vscode\mcp-ha-bridge\entity_index_cache.toon)
+

@@ -1,0 +1,19 @@
+# Build configuration for MCP Home Assistant Bridge
+build_from:
+  aarch64: node:20-alpine
+  amd64: node:20-alpine
+  armv7: node:20-alpine
+  i386: node:20-alpine
+
+labels:
+  org.opencontainers.image.title: "MCP Home Assistant Bridge"
+  org.opencontainers.image.description: "Model Context Protocol server for Home Assistant LLM integration"
+  org.opencontainers.image.source: "https://github.com/hellosamblack/ha-mcp-bridge-addon"
+  org.opencontainers.image.authors: "Sam Black <hellosamblack@gmail.com>"
+  org.opencontainers.image.licenses: "MIT"
+  io.hass.type: "addon"
+  io.hass.name: "MCP Home Assistant Bridge"
+  io.hass.version: "1.0.0"
+
+args:
+  BUILD_ARCH: "${BUILD_ARCH}"

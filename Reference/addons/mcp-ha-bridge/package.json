@@ -1,0 +1,38 @@
+{
+  "name": "mcp-ha-bridge",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Home Assistant integration with GitHub Copilot and LLM tooling",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "LOG_LEVEL=debug node server.js",
+    "test": "node -c server.js"
+  },
+  "keywords": [
+    "home-assistant",
+    "mcp",
+    "model-context-protocol",
+    "smart-home",
+    "automation",
+    "copilot",
+    "llm",
+    "iot"
+  ],
+  "author": "Sam Black <hellosamblack@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hellosamblack/ha-mcp-bridge-addon.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@toon-format/toon": "^0.7.1",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "ws": "^8.18.0"
+  }
+}
