@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "synapseha": {
+      "command": "node",
+      "args": ["/absolute/path/to/SynapseHA/dist/index.js"],
+      "env": {
+        "HA_URL": "http://homeassistant.local:8123",
+        "HA_TOKEN": "your_long_lived_access_token_here",
+        "CACHE_DIR": "./cache",
+        "CACHE_TTL": "60000"
+      }
+    }
+  }
+}
