@@ -63,12 +63,15 @@ export class CacheManager {
     // Update memory cache
     this.memoryCache.set(key, cached);
 
-    // Update disk cache
+    // Update disk cache - if this fails, invalidate memory cache to maintain consistency
     try {
       const cachePath = this.getCachePath(key);
       await fs.writeFile(cachePath, JSON.stringify(cached), 'utf-8');
     } catch (error) {
       console.error('Failed to write cache to disk:', error);
+      // Invalidate memory cache entry to maintain consistency between memory and disk
+      this.memoryCache.delete(key);
+      throw error; // Re-throw to notify caller of cache failure
     }
   }
 

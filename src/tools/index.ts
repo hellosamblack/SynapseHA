@@ -176,16 +176,21 @@ export function registerTools(
           throw new Error('Either entity_id or name must be provided');
         }
 
-        const entityId = resolver.resolveEntityId({
+        const searchParams = {
           entity_id: args.entity_id,
           name: args.name,
           area: args.area,
           floor: args.floor,
           domain: 'light',
-        });
+        };
+
+        const entityId = resolver.resolveEntityId(searchParams);
 
         if (!entityId) {
-          throw new Error('Could not resolve light entity. Provide a valid entity_id or check name/area spelling.');
+          throw new Error(
+            `Could not resolve light entity for entity_id="${args.entity_id ?? ''}", name="${args.name ?? ''}", area="${args.area ?? ''}", floor="${args.floor ?? ''}". ` +
+            'Provide a valid entity_id or check name/area spelling.'
+          );
         }
 
         const serviceData: any = {};
@@ -249,16 +254,35 @@ export function registerTools(
           throw new Error('Either entity_id or name must be provided');
         }
 
-        const entityId = resolver.resolveEntityId({
+        // Validate parameter types
+        if (args.entity_id !== undefined && typeof args.entity_id !== 'string') {
+          throw new Error('Invalid parameter: entity_id must be a string when provided.');
+        }
+        if (args.name !== undefined && typeof args.name !== 'string') {
+          throw new Error('Invalid parameter: name must be a string when provided.');
+        }
+        if (args.area !== undefined && typeof args.area !== 'string') {
+          throw new Error('Invalid parameter: area must be a string when provided.');
+        }
+        if (args.floor !== undefined && typeof args.floor !== 'string') {
+          throw new Error('Invalid parameter: floor must be a string when provided.');
+        }
+
+        const searchParams = {
           entity_id: args.entity_id,
           name: args.name,
           area: args.area,
           floor: args.floor,
           domain: 'climate',
-        });
+        };
+
+        const entityId = resolver.resolveEntityId(searchParams);
 
         if (!entityId) {
-          throw new Error('Could not resolve climate entity. Provide a valid entity_id or check name/area spelling.');
+          throw new Error(
+            `Could not resolve climate entity using search parameters: ${JSON.stringify(searchParams)}. ` +
+            'Provide a valid entity_id or check name/area/floor spelling.'
+          );
         }
 
         const actions = [];

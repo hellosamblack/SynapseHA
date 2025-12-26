@@ -7,7 +7,7 @@ export class NameResolver {
   private devices: Map<string, Device> = new Map();
 
   normalizeName(name: string): string {
-    if (!name) return '';
+    if (name == null || typeof name !== 'string') return '';
     return String(name)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
