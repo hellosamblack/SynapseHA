@@ -23,17 +23,10 @@ init: false
 ports:
   3000/tcp: 3000
 ports_description:
-  3000/tcp: MCP Server HTTP/SSE endpoint for external clients
+  3000/tcp: MCP Server HTTP/SSE endpoint for external MCP clients
 
-# Enable ingress for sidebar panel
-ingress: true
-ingress_port: 8099
-ingress_stream: true
-panel_icon: mdi:robot
-panel_title: SynapseHA
-
-# Web UI (ingress URL)
-webui: "[PROTO:http]://[HOST]:[PORT:3000]/"
+# Ingress is disabled as this is an API-only service
+ingress: false
 
 # Home Assistant API access - auto-injects SUPERVISOR_TOKEN
 homeassistant_api: true

@@ -16,7 +16,7 @@ MCP server for Home Assistant providing 21 tools for LLM-driven control and main
 
 ## 🏠 Home Assistant Add-on Installation
 
-SynapseHA can be installed as a Home Assistant add-on for easy integration.
+SynapseHA can be installed as a Home Assistant add-on for easy integration. The add-on runs an HTTP/SSE server that MCP clients can connect to.
 
 ### Quick Install
 
@@ -37,7 +37,15 @@ SynapseHA can be installed as a Home Assistant add-on for easy integration.
 
 3. **Start the add-on**
    - Click **Start**
-   - The add-on will automatically connect to your Home Assistant instance
+   - The add-on will automatically connect to your Home Assistant instance using the Supervisor API
+   - The MCP server will be available at `http://<homeassistant-ip>:3000`
+
+### Connecting MCP Clients
+
+Once the add-on is running, MCP clients can connect to:
+- **SSE endpoint**: `GET http://<homeassistant-ip>:3000/mcp`
+- **Messages endpoint**: `POST http://<homeassistant-ip>:3000/messages?sessionId=<id>`
+- **Health check**: `GET http://<homeassistant-ip>:3000/health`
 
 ### Add-on Configuration
 

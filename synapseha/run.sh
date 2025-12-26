@@ -83,9 +83,9 @@ else
 fi
 
 echo ""
-echo "Starting SynapseHA MCP server..."
+echo "Starting SynapseHA HTTP/SSE server..."
 echo "============================================"
 
-# Start the Node.js server
+# Start the Node.js HTTP server (not STDIO)
 cd /app
-exec node dist/index.js
+exec node dist/http-server.js
