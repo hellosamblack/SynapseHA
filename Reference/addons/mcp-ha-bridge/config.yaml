@@ -2,8 +2,8 @@
 name: "MCP Home Assistant Bridge"
 version: "1.0.0"
 slug: "mcp_ha_bridge"
-description: "Model Context Protocol server for Home Assistant integration with GitHub Copilot and LLM tooling"
-url: "https://github.com/hellosamblack/ha-mcp-bridge-addon"
+description: "Model Context Protocol server for Home Assistant integration with GitHub Copilot and LLM tooling. Provides 20 tools for controlling smart home devices, monitoring states, and analyzing history with intelligent entity resolution."
+url: "https://github.com/hellosamblack/SynapseHA"
 
 # Supported architectures
 arch:
@@ -25,15 +25,8 @@ ports:
 ports_description:
   3000/tcp: "MCP Server HTTP/SSE endpoint for external clients"
 
-# Enable ingress for sidebar panel
-ingress: true
-ingress_port: 8099
-ingress_stream: true
-panel_icon: "mdi:robot"
-panel_title: "MCP Bridge"
-
-# Web UI (ingress URL)
-webui: "[PROTO:http]://[HOST]:[PORT:3000]/"
+# Ingress is disabled as this is an MCP server without a web UI
+ingress: false
 
 # Home Assistant API access - auto-injects SUPERVISOR_TOKEN
 homeassistant_api: true
@@ -73,8 +66,8 @@ privileged: []
 host_network: false
 host_pid: false
 
-# Watchdog for auto-restart
-watchdog: "http://[HOST]:[PORT:3000]/health"
+# Note: Watchdog disabled as this server uses STDIO transport (no HTTP endpoints)
+# watchdog: "http://[HOST]:[PORT:3000]/health"
 
 # Image name for Docker Hub (if publishing)
 # image: "ghcr.io/hellosamblack/ha-mcp-bridge-addon/{arch}"

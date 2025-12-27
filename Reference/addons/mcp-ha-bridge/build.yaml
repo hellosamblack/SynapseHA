@@ -8,7 +8,7 @@ build_from:
 labels:
   org.opencontainers.image.title: "MCP Home Assistant Bridge"
   org.opencontainers.image.description: "Model Context Protocol server for Home Assistant LLM integration"
-  org.opencontainers.image.source: "https://github.com/hellosamblack/ha-mcp-bridge-addon"
+  org.opencontainers.image.source: "https://github.com/hellosamblack/SynapseHA"
   org.opencontainers.image.authors: "Sam Black <hellosamblack@gmail.com>"
   org.opencontainers.image.licenses: "MIT"
   io.hass.type: "addon"
