@@ -1,8 +1,8 @@
-# MCP Home Assistant Bridge Add-on Configuration
-name: "MCP Home Assistant Bridge"
+# SynapseHA Reference Bridge Configuration
+name: "SynapseHA Reference Bridge"
 version: "1.0.0"
-slug: "mcp_ha_bridge"
-description: "Model Context Protocol server for Home Assistant integration with GitHub Copilot and LLM tooling. Provides 20 tools for controlling smart home devices, monitoring states, and analyzing history with intelligent entity resolution."
+slug: "synapseha_reference"
+description: "Reference implementation of the MCP Home Assistant Bridge. Use the main SynapseHA add-on for the full experience."
 url: "https://github.com/hellosamblack/SynapseHA"
 
 # Supported architectures

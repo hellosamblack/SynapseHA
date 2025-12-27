@@ -1,8 +1,8 @@
 # SynapseHA Add-on Configuration
-name: SynapseHA
-version: 1.0.0
-slug: synapseha
-description: MCP server for Home Assistant providing 21 tools for LLM-driven control and maintenance
+name: "SynapseHA"
+version: "1.0.0"
+slug: "synapseha"
+description: "The complete SynapseHA MCP server for Home Assistant. Provides 21+ tools for LLM-driven control, maintenance, and smart home intelligence."
 url: https://github.com/hellosamblack/SynapseHA
 
 # Supported architectures (i386 removed - Node.js 20 dropped 32-bit x86 Linux support)

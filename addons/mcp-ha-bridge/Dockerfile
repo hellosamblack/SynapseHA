@@ -36,8 +36,8 @@ RUN mkdir -p /data
 
 # Labels
 LABEL \
-    io.hass.name="MCP Home Assistant Bridge" \
-    io.hass.description="MCP server for Home Assistant LLM integration" \
+    io.hass.name="SynapseHA Reference Bridge" \
+    io.hass.description="Reference implementation of the MCP Home Assistant Bridge" \
     io.hass.type="addon" \
     io.hass.version="1.0.0"
 

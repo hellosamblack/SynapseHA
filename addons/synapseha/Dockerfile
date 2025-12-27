@@ -14,23 +14,17 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Clone the repository at build time - use BUILD_VERSION for specific tag/branch
-ARG BUILD_VERSION=main
-RUN git clone https://github.com/hellosamblack/SynapseHA.git /tmp/synapseha && \
-    cd /tmp/synapseha && \
-    git checkout "${BUILD_VERSION}" && \
-    cp package.json package-lock.json /app/ && \
-    cp tsconfig.json /app/ && \
-    cp -r src /app/ && \
-    rm -rf /tmp/synapseha
+# Copy application files from the repository root (context set in build.yaml)
+COPY package.json package-lock.json tsconfig.json ./
+COPY src ./src
 
 # Install dependencies, build, then prune dev dependencies to keep only production deps
 RUN npm ci 2>/dev/null || npm install && \
     npm run build && \
     npm prune --production
 
-# Copy entrypoint script
-COPY run.sh /run.sh
+# Copy entrypoint script from the add-on directory
+COPY addons/synapseha/run.sh /run.sh
 RUN chmod a+x /run.sh
 
 # Create data directory for cache persistence
