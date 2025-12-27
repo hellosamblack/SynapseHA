@@ -56,12 +56,12 @@ schema:
 
 # Environment variables
 environment:
-  NODE_ENV: production
 
+  NODE_ENV: production
 # Add-on privileges
 privileged: []
 host_network: false
 host_pid: false
 
 # Watchdog for auto-restart
-watchdog: "http://localhost:3000/health"
+watchdog: "http://[HOST]:3000/health"
