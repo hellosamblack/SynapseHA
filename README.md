@@ -21,10 +21,11 @@ SynapseHA can be installed as a Home Assistant add-on for easy integration. The 
 ### Quick Install
 
 1. **Add this repository to Home Assistant**
-   
+
    [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fhellosamblack%2FSynapseHA)
-   
+
    Or manually:
+
    - Go to **Settings** → **Add-ons** → **Add-on Store**
    - Click the three dots menu (⋮) in the top right
    - Select **Repositories**
@@ -32,6 +33,7 @@ SynapseHA can be installed as a Home Assistant add-on for easy integration. The 
    - Click **Add** → **Close**
 
 2. **Install the add-on**
+
    - Find **SynapseHA** in the add-on store
    - Click **Install**
 
@@ -43,6 +45,7 @@ SynapseHA can be installed as a Home Assistant add-on for easy integration. The 
 ### Connecting MCP Clients
 
 Once the add-on is running, MCP clients can connect to:
+
 - **SSE endpoint**: `GET http://<homeassistant-ip>:3000/mcp`
 - **Messages endpoint**: `POST http://<homeassistant-ip>:3000/messages?sessionId=<id>`
 - **Health check**: `GET http://<homeassistant-ip>:3000/health`
@@ -51,64 +54,14 @@ Once the add-on is running, MCP clients can connect to:
 
 The add-on supports the following configuration options:
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `log_level` | `info` | Logging level (debug, info, warn, error) |
-| `http_port` | `3000` | HTTP port for MCP server |
-| `bearer_token` | `""` | Optional bearer token for authentication |
-| `require_auth` | `false` | Require authentication for connections |
-| `cache_refresh_interval` | `60` | Cache refresh interval in seconds |
-| `entity_cache_enabled` | `true` | Enable entity caching |
-
-## 🚀 Manual Installation (Claude Desktop)
-
-For use with Claude Desktop without Home Assistant add-on:
-
-1. **Install dependencies**
-   ```bash
-   npm install
-   npm run build
-   ```
-
-2. **Get Home Assistant token**
-   - Open Home Assistant
-   - Go to Profile → Long-Lived Access Tokens
-   - Create a new token
-
-3. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your HA_URL and HA_TOKEN
-   ```
-
-4. **Add to Claude Desktop**
-   
-   Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
-   ```json
-   {
-     "mcpServers": {
-       "synapseha": {
-         "command": "node",
-         "args": ["/absolute/path/to/SynapseHA/dist/index.js"],
-         "env": {
-           "HA_URL": "http://homeassistant.local:8123",
-           "HA_TOKEN": "your_token_here"
-         }
-       }
-     }
-   }
-   ```
-
-5. **Restart Claude Desktop** and start chatting!
-
-## 📋 Development Installation
-
-```bash
-git clone https://github.com/hellosamblack/SynapseHA.git
-cd SynapseHA
-npm install
-npm run build
-```
+| Option                   | Default | Description                              |
+| ------------------------ | ------- | ---------------------------------------- |
+| `log_level`              | `info`  | Logging level (debug, info, warn, error) |
+| `http_port`              | `3000`  | HTTP port for MCP server                 |
+| `bearer_token`           | `""`    | Optional bearer token for authentication |
+| `require_auth`           | `false` | Require authentication for connections   |
+| `cache_refresh_interval` | `60`    | Cache refresh interval in seconds        |
+| `entity_cache_enabled`   | `true`  | Enable entity caching                    |
 
 ## ⚙️ Configuration
 
@@ -137,16 +90,43 @@ export CACHE_TTL="60000"    # Optional, defaults to 60 seconds
 npm start
 ```
 
-### Using with Claude Desktop
+## 🔌 Client Setup
 
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+### **Antigravity & VS Code (MCP Extension)**
+
+1. **Install the connection**:
+   - Ensure you have the **MCP Extension** installed in VS Code.
+   - Open your **MCP Server Configuration** (usually in `.vscode/mcp.json` or global settings).
+2. **Add the SynapseHA Server**:
+
+   **Run Locally (Recommended for Antigravity/VS Code on the same machine):**
+   If you are running this code locally (not on HA OS), point directly to the build:
+
+   ```json
+   {
+     "mcpServers": {
+       "synapseha": {
+         "command": "node",
+         "args": ["f:/CastleBlackCode/SynapseHA/synapseha/dist/index.js"],
+         "env": {
+           "HA_URL": "http://homeassistant.local:8123",
+           "HA_TOKEN": "your_long_lived_token"
+         }
+       }
+     }
+   }
+   ```
+
+### **Claude Desktop**
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS or `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 
 ```json
 {
   "mcpServers": {
     "synapseha": {
       "command": "node",
-      "args": ["/path/to/SynapseHA/dist/index.js"],
+      "args": ["/absolute/path/to/SynapseHA/synapseha/dist/index.js"],
       "env": {
         "HA_URL": "http://homeassistant.local:8123",
         "HA_TOKEN": "your_token_here"
@@ -231,7 +211,7 @@ SynapseHA features intelligent entity resolution that allows flexible device con
 // Use friendly names instead of entity IDs
 {name: "living room lights"}  // → light.living_room_main
 
-// Combine with area for disambiguation  
+// Combine with area for disambiguation
 {name: "temperature", area: "bedroom"}  // → sensor.bedroom_temperature
 
 // Add floor for multi-level homes
@@ -316,6 +296,7 @@ ISC - See [LICENSE](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 Built with:
+
 - [Model Context Protocol SDK](https://github.com/modelcontextprotocol/sdk) - MCP implementation
 - [Home Assistant](https://www.home-assistant.io/) - Smart home platform
 - [Fuse.js](https://fusejs.io/) - Fuzzy search library

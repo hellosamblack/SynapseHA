@@ -22,7 +22,7 @@ init: true
 ports:
   3000/tcp: 3000
 ports_description:
-  3000/tcp: MCP Server HTTP/SSE endpoint for external MCP clients
+  3000/tcp: HTTP/SSE Server Port (Used by Antigravity/Claude)
 
 # Ingress is disabled as this is an API-only service
 ingress: false

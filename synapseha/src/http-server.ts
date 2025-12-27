@@ -3,38 +3,51 @@
  * HTTP/SSE server for SynapseHA - designed for Home Assistant add-on deployment.
  * This provides an HTTP endpoint for MCP clients to connect to.
  */
-import express from 'express';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { HomeAssistantClient } from './lib/ha-client.js';
-import { CacheManager } from './lib/cache.js';
-import { FuzzySearcher } from './lib/fuzzy-search.js';
-import { NameResolver } from './lib/name-resolver.js';
-import { logger } from './lib/logger.js';
-import { toolDefinitions, createToolHandlers } from './tools/http-tools.js';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import dotenv from "dotenv";
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import { CacheManager } from "./lib/cache.js";
+import { FuzzySearcher } from "./lib/fuzzy-search.js";
+import { HomeAssistantClient } from "./lib/ha-client.js";
+import { logger } from "./lib/logger.js";
+import { NameResolver } from "./lib/name-resolver.js";
+import { createToolHandlers, toolDefinitions } from "./tools/http-tools.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
-const HA_URL = process.env.HA_URL || process.env.HASS_URL || 'http://homeassistant.local:8123';
-const HA_TOKEN = process.env.HA_TOKEN || process.env.HASS_TOKEN || process.env.SUPERVISOR_TOKEN || '';
-const CACHE_DIR = process.env.CACHE_DIR || './cache';
-const CACHE_TTL = parseInt(process.env.CACHE_TTL || '60000', 10);
-const HTTP_PORT = parseInt(process.env.HTTP_PORT || '3000', 10);
-const BEARER_TOKEN = process.env.BEARER_TOKEN || '';
-const REQUIRE_AUTH = process.env.REQUIRE_AUTH === 'true';
-const CACHE_REFRESH_INTERVAL = parseInt(process.env.CACHE_REFRESH_INTERVAL || '60', 10) * 1000;
+const HA_URL =
+  process.env.HA_URL ||
+  process.env.HASS_URL ||
+  "http://homeassistant.local:8123";
+const HA_TOKEN =
+  process.env.HA_TOKEN ||
+  process.env.HASS_TOKEN ||
+  process.env.SUPERVISOR_TOKEN ||
+  "";
+const CACHE_DIR = process.env.CACHE_DIR || "./cache";
+const CACHE_TTL = parseInt(process.env.CACHE_TTL || "60000", 10);
+const HTTP_PORT = parseInt(process.env.HTTP_PORT || "3000", 10);
+const BEARER_TOKEN = process.env.BEARER_TOKEN || "";
+const REQUIRE_AUTH = process.env.REQUIRE_AUTH === "true";
+const CACHE_REFRESH_INTERVAL =
+  parseInt(process.env.CACHE_REFRESH_INTERVAL || "60", 10) * 1000;
 
 if (!HA_TOKEN) {
-  logger.error('Error: HA_TOKEN (or HASS_TOKEN or SUPERVISOR_TOKEN) environment variable is required');
+  logger.error(
+    "Error: HA_TOKEN (or HASS_TOKEN or SUPERVISOR_TOKEN) environment variable is required"
+  );
   process.exit(1);
 }
 
 // Store active transports by session ID with timestamps for cleanup
-const transports: Record<string, { transport: SSEServerTransport; lastActivity: number }> = {};
+const transports: Record<
+  string,
+  { transport: SSEServerTransport; lastActivity: number }
+> = {};
 
 // Cleanup interval for stale transports (5 minutes)
 const TRANSPORT_TIMEOUT_MS = 5 * 60 * 1000;
@@ -49,8 +62,8 @@ let nameResolver: NameResolver;
 function createServer(): McpServer {
   const server = new McpServer(
     {
-      name: 'synapseha',
-      version: '1.0.0',
+      name: "synapseha",
+      version: "1.0.0",
     },
     {
       capabilities: {
@@ -61,8 +74,13 @@ function createServer(): McpServer {
   );
 
   // Register all tools using McpServer's registerTool method
-  const handlers = createToolHandlers(haClient, cacheManager, fuzzySearcher, nameResolver);
-  
+  const handlers = createToolHandlers(
+    haClient,
+    cacheManager,
+    fuzzySearcher,
+    nameResolver
+  );
+
   for (const toolDef of toolDefinitions) {
     server.registerTool(
       toolDef.name,
@@ -78,7 +96,11 @@ function createServer(): McpServer {
 }
 
 // Authentication middleware
-function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction): void {
+function authMiddleware(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+): void {
   // Skip auth if not required
   if (!REQUIRE_AUTH) {
     next();
@@ -87,20 +109,29 @@ function authMiddleware(req: express.Request, res: express.Response, next: expre
 
   // Validate that a bearer token is configured when auth is required
   if (!BEARER_TOKEN) {
-    logger.error('Authentication is required but no bearer token is configured');
-    res.status(500).json({ error: 'Server misconfiguration: authentication required but no token configured' });
+    logger.error(
+      "Authentication is required but no bearer token is configured"
+    );
+    res
+      .status(500)
+      .json({
+        error:
+          "Server misconfiguration: authentication required but no token configured",
+      });
     return;
   }
 
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authorization header with Bearer token required' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res
+      .status(401)
+      .json({ error: "Authorization header with Bearer token required" });
     return;
   }
 
   const token = authHeader.substring(7);
   if (token !== BEARER_TOKEN) {
-    res.status(403).json({ error: 'Invalid bearer token' });
+    res.status(403).json({ error: "Invalid bearer token" });
     return;
   }
 
@@ -117,7 +148,10 @@ function cleanupStaleTransports(): void {
       try {
         entry.transport.close();
       } catch (error) {
-        logger.error(`Error closing stale transport for session ${sessionId}:`, error);
+        logger.error(
+          `Error closing stale transport for session ${sessionId}:`,
+          error
+        );
       }
       delete transports[sessionId];
     }
@@ -125,7 +159,7 @@ function cleanupStaleTransports(): void {
 }
 
 async function gracefulShutdown(): Promise<void> {
-  logger.info('Shutting down...');
+  logger.info("Shutting down...");
   for (const sessionId in transports) {
     try {
       await transports[sessionId].transport.close();
@@ -139,7 +173,7 @@ async function gracefulShutdown(): Promise<void> {
 }
 
 async function main() {
-  logger.info('Starting SynapseHA HTTP/SSE Server...');
+  logger.info("Starting SynapseHA HTTP/SSE Server...");
 
   // Initialize components
   haClient = new HomeAssistantClient(HA_URL, HA_TOKEN);
@@ -150,35 +184,39 @@ async function main() {
   await cacheManager.init();
 
   // Initialize cache with entity states and auto-refresh
-  logger.info('Initializing cache and auto-refresh...');
+  logger.info("Initializing cache and auto-refresh...");
   try {
     const entities = await haClient.getStates();
-    await cacheManager.set('entities', entities);
+    await cacheManager.set("entities", entities);
     fuzzySearcher.setEntities(entities);
     nameResolver.setEntities(entities);
 
     // Auto-refresh entities using configured interval
-    cacheManager.registerAutoRefresh('entities', async () => {
-      const newEntities = await haClient.getStates();
-      fuzzySearcher.setEntities(newEntities);
-      nameResolver.setEntities(newEntities);
-      return newEntities;
-    }, CACHE_REFRESH_INTERVAL);
+    cacheManager.registerAutoRefresh(
+      "entities",
+      async () => {
+        const newEntities = await haClient.getStates();
+        fuzzySearcher.setEntities(newEntities);
+        nameResolver.setEntities(newEntities);
+        return newEntities;
+      },
+      CACHE_REFRESH_INTERVAL
+    );
 
     // Load devices and areas
     const devices = await haClient.getDevices();
-    await cacheManager.set('devices', devices);
+    await cacheManager.set("devices", devices);
     fuzzySearcher.setDevices(devices);
     nameResolver.setDevices(devices);
 
     const areas = await haClient.getAreas();
-    await cacheManager.set('areas', areas);
+    await cacheManager.set("areas", areas);
     fuzzySearcher.setAreas(areas);
     nameResolver.setAreas(areas);
 
-    logger.info('Cache initialized successfully');
+    logger.info("Cache initialized successfully");
   } catch (error) {
-    logger.error('Error: Failed to initialize cache:', error);
+    logger.error("Error: Failed to initialize cache:", error);
     process.exit(1);
   }
 
@@ -187,20 +225,20 @@ async function main() {
   app.use(express.json());
 
   // Health check endpoint (no auth required)
-  app.get('/health', (_req, res) => {
-    res.json({ 
-      status: 'ok', 
-      name: 'synapseha',
-      version: '1.0.0',
-      sessions: Object.keys(transports).length
+  app.get("/health", (_req, res) => {
+    res.json({
+      status: "ok",
+      name: "synapseha",
+      version: "1.0.0",
+      sessions: Object.keys(transports).length,
     });
   });
 
   // SSE endpoint for establishing the stream (auth required if configured)
-  app.get('/mcp', authMiddleware, async (req, res) => {
-    logger.info('Received GET request to /mcp (establishing SSE stream)');
+  app.get("/mcp", authMiddleware, async (req, res) => {
+    logger.info("Received GET request to /mcp (establishing SSE stream)");
     try {
-      const transport = new SSEServerTransport('/messages', res);
+      const transport = new SSEServerTransport("/messages", res);
       const sessionId = transport.sessionId;
       transports[sessionId] = { transport, lastActivity: Date.now() };
 
@@ -209,30 +247,32 @@ async function main() {
         delete transports[sessionId];
       };
 
+      logger.info(`New SSE connection request. Session ID: ${sessionId}`);
+
       const server = createServer();
       await server.connect(transport);
       logger.info(`Established SSE stream with session ID: ${sessionId}`);
     } catch (error) {
-      logger.error('Error establishing SSE stream:', error);
+      logger.error("Error establishing SSE stream:", error);
       if (!res.headersSent) {
-        res.status(500).send('Error establishing SSE stream');
+        res.status(500).send("Error establishing SSE stream");
       }
     }
   });
 
   // Messages endpoint for receiving client JSON-RPC requests (auth required if configured)
-  app.post('/messages', authMiddleware, async (req, res) => {
+  app.post("/messages", authMiddleware, async (req, res) => {
     const sessionId = req.query.sessionId as string;
     if (!sessionId) {
-      logger.error('No session ID provided in request URL');
-      res.status(400).send('Missing sessionId parameter');
+      logger.error("No session ID provided in request URL");
+      res.status(400).send("Missing sessionId parameter");
       return;
     }
 
     const entry = transports[sessionId];
     if (!entry) {
       logger.error(`No active transport found for session ID: ${sessionId}`);
-      res.status(404).send('Session not found');
+      res.status(404).send("Session not found");
       return;
     }
 
@@ -242,9 +282,9 @@ async function main() {
     try {
       await entry.transport.handlePostMessage(req, res, req.body);
     } catch (error) {
-      logger.error('Error handling request:', error);
+      logger.error("Error handling request:", error);
       if (!res.headersSent) {
-        res.status(500).send('Error handling request');
+        res.status(500).send("Error handling request");
       }
     }
   });
@@ -263,11 +303,11 @@ async function main() {
   });
 
   // Cleanup on exit - handle both SIGINT and SIGTERM
-  process.on('SIGINT', gracefulShutdown);
-  process.on('SIGTERM', gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
+  process.on("SIGTERM", gracefulShutdown);
 }
 
 main().catch((error) => {
-  logger.error('Fatal error:', error);
+  logger.error("Fatal error:", error);
   process.exit(1);
 });
