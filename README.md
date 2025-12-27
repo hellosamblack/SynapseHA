@@ -99,7 +99,20 @@ npm start
    - Open your **MCP Server Configuration** (usually in `.vscode/mcp.json` or global settings).
 2. **Add the SynapseHA Server**:
 
-   **Run Locally (Recommended for Antigravity/VS Code on the same machine):**
+   **If running via Home Assistant Add-on (Remote/Network):**
+   Use the URL where your Add-on is communicating.
+
+   ```json
+   {
+     "mcpServers": {
+       "synapseha": {
+         "url": "http://<homeassistant-ip>:3000/mcp"
+       }
+     }
+   }
+   ```
+
+   **Run Locally (Development only):**
    If you are running this code locally (not on HA OS), point directly to the build:
 
    ```json
