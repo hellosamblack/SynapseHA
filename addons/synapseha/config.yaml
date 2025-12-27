@@ -1,5 +1,5 @@
 # SynapseHA Add-on Configuration
-name: "SynapseHA"
+name: "SynapseHA MCP"
 version: "1.0.0"
 slug: "synapseha"
 description: "The complete SynapseHA MCP server for Home Assistant. Provides 21+ tools for LLM-driven control, maintenance, and smart home intelligence."
