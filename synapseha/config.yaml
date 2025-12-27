@@ -30,8 +30,6 @@ ingress: false
 # Home Assistant API access - auto-injects SUPERVISOR_TOKEN
 homeassistant_api: true
 hassio_api: true
-hassio_role: default
-auth_api: true
 
 # Persistent storage
 map:
@@ -49,11 +47,11 @@ options:
 
 # Schema validation
 schema:
-  log_level: list(debug|info|warn|error)
+  log_level: str
   http_port: port
   bearer_token: str
   require_auth: bool
-  cache_refresh_interval: int(30,3600)
+  cache_refresh_interval: int
   entity_cache_enabled: bool
 
 # Environment variables
