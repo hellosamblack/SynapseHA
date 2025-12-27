@@ -6,7 +6,9 @@ FROM ${BUILD_FROM}
 RUN apk add --no-cache \
     curl \
     jq \
-    bash
+    bash \
+    nodejs \
+    npm
 
 # Set working directory
 WORKDIR /app

@@ -7,7 +7,9 @@ RUN apk add --no-cache \
     curl \
     jq \
     bash \
-    git
+    git \
+    nodejs \
+    npm
 
 # Set working directory
 WORKDIR /app
