@@ -6,13 +6,13 @@ build_from:
   i386: node:20-alpine
 
 labels:
-  org.opencontainers.image.title: "MCP Home Assistant Bridge"
-  org.opencontainers.image.description: "Model Context Protocol server for Home Assistant LLM integration"
+  org.opencontainers.image.title: "SynapseHA Reference Bridge"
+  org.opencontainers.image.description: "Reference implementation of the MCP Home Assistant Bridge"
   org.opencontainers.image.source: "https://github.com/hellosamblack/SynapseHA"
   org.opencontainers.image.authors: "Sam Black <hellosamblack@gmail.com>"
   org.opencontainers.image.licenses: "MIT"
   io.hass.type: "addon"
-  io.hass.name: "MCP Home Assistant Bridge"
+  io.hass.name: "SynapseHA Reference Bridge"
   io.hass.version: "1.0.0"
 
 args:

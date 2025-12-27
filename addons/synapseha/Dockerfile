@@ -14,7 +14,7 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy application files from the repository root (context set in build.yaml)
+# Copy application files
 COPY package.json package-lock.json tsconfig.json ./
 COPY src ./src
 
@@ -23,8 +23,8 @@ RUN npm ci 2>/dev/null || npm install && \
     npm run build && \
     npm prune --production
 
-# Copy entrypoint script from the add-on directory
-COPY addons/synapseha/run.sh /run.sh
+# Copy entrypoint script
+COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 
 # Create data directory for cache persistence

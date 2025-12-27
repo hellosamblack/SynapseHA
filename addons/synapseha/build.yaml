@@ -1,5 +1,4 @@
 # Build configuration for SynapseHA
-context: ../..
 build_from:
   aarch64: node:20-alpine
   amd64: node:20-alpine
